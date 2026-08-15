@@ -1,0 +1,2137 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>High Tiers - Rankings</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<style>
+
+:root {
+
+    --bg-dark: #0f1219;
+
+    --card-bg: #161b22;
+
+    --accent-blue: #5865f2;
+
+    --text-main: #ffffff;
+
+    --text-dim: #94a3b8;
+
+    --border-color: #30363d;
+
+    --rank-gold: #d4af37;
+
+    --rank-silver: #a0a0a0;
+
+    --rank-bronze: #cd7f32;
+
+    --rank-default: #1e293b; /* Dark blue theme for rank blocks */
+
+}
+
+
+
+html {
+
+    overflow-x: hidden;
+
+    max-width: 100%;
+
+    overscroll-behavior-x: none;
+
+}
+
+body {
+
+    margin: 0;
+
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+
+    background: linear-gradient(135deg, #0f1219 0%, #1a1b2e 50%, #0f1219 100%);
+
+    background-attachment: fixed;
+
+    color: var(--text-main);
+
+    overflow-x: hidden;
+
+    overflow-y: scroll;
+
+    max-width: 100%;
+
+    scrollbar-gutter: stable;
+
+    position: relative;
+
+    overscroll-behavior-x: none;
+
+}
+
+
+
+body::before, body::after {
+
+    content: "";
+
+    position: fixed;
+
+    border-radius: 50%;
+
+    filter: blur(120px);
+
+    z-index: -1;
+
+    pointer-events: none;
+
+    opacity: 0.4;
+
+}
+
+body::before {
+
+    top: -10%; left: -10%; width: 50vw; height: 50vh;
+
+    background: rgba(88, 101, 242, 0.25);
+
+}
+
+body::after {
+
+    bottom: -10%; right: -10%; width: 50vw; height: 50vh;
+
+    background: rgba(147, 51, 234, 0.2);
+
+}
+
+
+
+/* TOP NAVBAR */
+
+.top-navbar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    background: transparent;
+
+    padding: 12px 0;
+
+    margin: 0 auto 30px auto;
+
+    width: 95%;
+
+    max-width: 1250px;
+
+}
+
+.top-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+}
+
+.header-logo {
+
+    height: 45px;
+
+    width: auto;
+
+    filter: drop-shadow(0 0 5px rgba(147, 51, 234, 0.5));
+
+}
+
+.title-text { 
+
+    font-size: 26px; font-weight: 900; color: #ffffff; 
+
+    letter-spacing: 2px; text-transform: uppercase;
+
+    background: linear-gradient(90deg, #fff, #94a3b8);
+
+    -webkit-background-clip: text; color: transparent;
+
+}
+
+
+
+.top-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+}
+
+.search-container {
+
+    position: relative;
+
+    display: flex;
+
+    align-items: center;
+
+}
+
+.search-icon {
+
+    position: absolute;
+
+    left: 12px;
+
+    width: 20px;
+
+    height: 20px;
+
+    fill: var(--text-dim);
+
+    pointer-events: none;
+
+}
+
+.search-bar {
+
+    width: 280px;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    border: 1px solid var(--border-color);
+
+    padding: 10px 16px 10px 40px; 
+
+    border-radius: 8px;
+
+    color: white;
+
+    font-size: 15px;
+
+    outline: none;
+
+    transition: 0.2s;
+
+    height: 42px;
+
+    box-sizing: border-box;
+
+}
+
+.search-bar:focus { border-color: var(--accent-blue); background: rgba(255, 255, 255, 0.1); }
+
+
+
+/* KITS NAVBAR */
+
+.navbar-container {
+
+    display: flex; 
+
+    justify-content: flex-start; 
+
+    flex-wrap: nowrap; 
+
+    padding: 10px 0 0 0; 
+
+    width: 95%; 
+
+    max-width: 1250px;
+
+    margin: 0 auto 20px;
+
+    border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+
+    gap: 6px;
+
+    position: relative;
+
+    overflow-x: auto;
+
+    scrollbar-width: none;
+
+    align-items: flex-end;
+
+}
+
+.navbar-container::-webkit-scrollbar { display: none; }
+
+.nav-scrollbar-track {
+    width: 95%;
+    max-width: 1250px;
+    height: 5px;
+    margin: 0 auto 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    display: none;
+}
+.nav-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    min-width: 40px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    transition: background 0.2s;
+    cursor: grab;
+}
+.nav-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
+.nav-scrollbar-thumb.dragging { background: rgba(255, 255, 255, 0.6); cursor: grabbing; }
+
+
+
+.nav-active-bar {
+
+    position: absolute;
+
+    bottom: -2px;
+
+    height: 3px;
+
+    background-color: #ffffff;
+
+    border-radius: 3px 3px 0 0;
+
+    transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+    box-shadow: 0 -2px 8px rgba(255, 255, 255, 0.4);
+
+    z-index: 10;
+
+}
+
+
+
+.nav-item {
+
+    display: flex; flex-direction: column; align-items: center; 
+
+    padding: 12px 18px 10px 18px;
+
+    color: var(--text-dim); text-decoration: none; font-size: 12px; font-weight: 600;
+
+    transition: 0.2s; border-radius: 14px 14px 0 0; min-width: 65px; cursor: pointer;
+
+    position: relative; z-index: 1;
+
+    border: 1px solid rgba(255, 255, 255, 0.04);
+
+    border-bottom: none;
+
+    background: rgba(255, 255, 255, 0.015);
+
+}
+
+.nav-item img { width: 24px; height: 24px; margin-bottom: 5px; background: transparent; pointer-events: none; }
+
+.nav-item.active { 
+
+    color: white; 
+
+    background: rgba(255, 255, 255, 0.06); 
+
+    border-color: rgba(255, 255, 255, 0.08); 
+
+}
+
+.nav-item:hover { 
+
+    background: rgba(255, 255, 255, 0.04); 
+
+    color: white; 
+
+}
+
+
+
+@keyframes navPopIn {
+
+    from { opacity: 0; transform: translateY(-15px); }
+
+    to { opacity: 1; transform: translateY(0); }
+
+}
+
+.nav-item-anim { animation: navPopIn 0.5s ease-out forwards; opacity: 0; }
+
+
+
+.rainbow-text {
+
+    background-image: linear-gradient(90deg, #ff4d4d, #ffcc00, #52fa9a, #3fa9f5, #9c6bff, #ff4d4d);
+
+    background-size: 200% auto;
+
+    color: transparent !important;
+
+    -webkit-background-clip: text; background-clip: text;
+
+    animation: rainbow-anim 3s linear infinite; font-weight: 900 !important;
+
+}
+
+@keyframes rainbow-anim { to { background-position: 200% center; } }
+
+
+
+/* SECONDARY ACTIONS */
+
+.secondary-actions-container {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    align-items: center;
+
+    gap: 15px;
+
+    width: 95%;
+
+    max-width: 1250px;
+
+    margin: 0 auto 15px;
+
+}
+
+.discord-btn { 
+
+    background: rgba(88, 101, 242, 0.9); 
+
+    border: 1px solid var(--border-color); 
+
+    border-radius: 8px;
+
+    display: flex; align-items: center; justify-content: center;
+
+    width: 46px; height: 46px;
+
+    transition: 0.2s; cursor: pointer;
+
+}
+
+.discord-btn:hover { background: #4752c4; }
+
+.discord-btn svg { width: 22px; height: 22px; fill: white; }
+
+
+
+.ip-btn {
+
+    background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(147, 51, 234, 0.3);
+
+    border-radius: 8px; color: var(--text-main); cursor: pointer;
+
+    display: flex; align-items: center; text-decoration: none;
+
+    transition: 0.2s; padding: 6px 16px; gap: 12px; height: 46px;
+
+}
+
+.ip-btn:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(147, 51, 234, 0.6); }
+
+.ip-logo-img { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; background: #111; }
+
+.ip-details { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+
+.ip-label { font-size: 10px; font-weight: bold; color: var(--text-dim); margin-bottom: 2px; letter-spacing: 0.5px; }
+
+.ip-value { font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 8px; color: #e2e8f0; }
+
+
+
+.copy-icon {
+
+    width: 18px;
+
+    height: 18px;
+
+    fill: var(--text-dim);
+
+    margin-left: 8px;
+
+    transition: 0.2s;
+
+}
+
+.ip-btn:hover .copy-icon { fill: #ffffff; }
+
+
+
+.container { width: 1250px; max-width: 95%; margin: 0 auto 50px; }
+
+
+
+@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+
+
+
+/* PLAYER CARD */
+
+.player-card {
+
+    display: grid;
+
+    grid-template-columns: 85px 280px 80px 1fr 120px;
+
+    align-items: center; 
+
+    background: rgba(22, 27, 34, 0.7); 
+
+    backdrop-filter: blur(10px);
+
+    margin-bottom: 12px; 
+
+    padding: 0 24px 0 0; /* Padding adjusted to fit rank block */
+
+    border-radius: 12px; 
+
+    border: 1px solid var(--border-color);
+
+    cursor: pointer; 
+
+    transition: transform 0.2s, background 0.2s, border 0.2s; 
+
+    opacity: 0; 
+
+    transform: translateX(-50px);
+
+    overflow: hidden; /* Clips the background blocks smoothly */
+
+    position: relative;
+
+}
+
+.player-card:hover { border-color: rgba(88, 101, 242, 0.5); background: rgba(22, 27, 34, 0.9); }
+
+.player-card.show { animation: slideIn 0.5s forwards; }
+
+.player-card.no-anim { opacity: 1; transform: translateX(0); animation: none; }
+
+
+
+/* SLANTED RANK BLOCKS */
+
+.rank-num-box { 
+
+    height: 100%;
+
+    min-height: 94px; /* Matches standard card height */
+
+    display: flex;
+
+    align-items: center;
+
+    padding-left: 20px;
+
+    font-size: 30px; 
+
+    font-style: italic; 
+
+    font-weight: 900; 
+
+    clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%);
+
+}
+
+.rank-1 .rank-num-box { background: var(--rank-gold); color: #111; }
+
+.rank-2 .rank-num-box { background: var(--rank-silver); color: #111; }
+
+.rank-3 .rank-num-box { background: var(--rank-bronze); color: #111; }
+
+.rank-none .rank-num-box { background: var(--rank-default); color: var(--text-dim); }
+
+
+
+@keyframes shine {
+
+    0% { left: -150%; } 20% { left: 150%; } 100% { left: 150%; }
+
+}
+
+.rank-1 .rank-num-box::after, .rank-2 .rank-num-box::after, .rank-3 .rank-num-box::after, 
+
+.pos-num-wrap.pos-rank-1::after, .pos-num-wrap.pos-rank-2::after, .pos-num-wrap.pos-rank-3::after {
+
+    content: ""; position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
+
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+
+    transform: skewX(-25deg); animation: shine 3s infinite; pointer-events: none;
+
+}
+
+
+
+/* Periodic full-card white flicker sweep for the top 3 ranked players */
+
+@keyframes cardFlickerShine {
+
+    0%   { left: -60%; opacity: 0; }
+
+    2%   { opacity: 1; }
+
+    14%  { left: 130%; opacity: 1; }
+
+    16%  { opacity: 0; left: 130%; }
+
+    100% { left: 130%; opacity: 0; }
+
+}
+
+.player-card.rank-1::before,
+
+.player-card.rank-2::before,
+
+.player-card.rank-3::before {
+
+    content: "";
+
+    position: absolute;
+
+    top: 0; left: -60%;
+
+    width: 35%; height: 100%;
+
+    background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0) 100%);
+
+    transform: skewX(-20deg);
+
+    pointer-events: none;
+
+    z-index: 2;
+
+    opacity: 0;
+
+    animation: cardFlickerShine 5s ease-in-out infinite;
+
+}
+
+.player-card.rank-2::before { animation-delay: 0.6s; }
+
+.player-card.rank-3::before { animation-delay: 1.2s; }
+
+
+
+.player-main { display: flex; align-items: center; gap: 16px; margin-left: 10px; }
+
+.player-avatar-wrap, .avatar-bust { overflow: hidden; border-radius: 8px; flex-shrink: 0; background: #1a1a1a; }
+
+.player-avatar-wrap { width: 52px; height: 62px; }
+
+.avatar-bust { width: 40px; height: 48px; border-radius: 6px; }
+
+.player-avatar, .avatar-bust img { width: 100%; height: auto; object-fit: cover; object-position: top center; image-rendering: pixelated; }
+
+.player-avatar { min-height: 100px; }
+
+.avatar-bust img { min-height: 80px; }
+
+.player-info { display: flex; flex-direction: column; justify-content: center; }
+
+.player-name { font-weight: bold; font-size: 20px; line-height: 1.1; }
+
+
+
+.player-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.title-grandmaster { color: #a855f7; }
+
+.title-master { color: #facc15; }
+
+.title-ace { color: #f43f5e; }
+
+.title-icon { width: 14px; height: 14px; }
+
+
+
+.region-tag { background: rgba(45,51,59,0.8); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; width: 45px; border: 1px solid rgba(255,255,255,0.05); }
+
+.NA { color: #ff4d4d; } .EU { color: #4da6ff; } .AS { color: #ffcc00; } .ME { color: #8aff66; } .PK { color: #22c55e; }
+
+
+
+.tier-list { display: flex; gap: 12px; margin-left: 24px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+
+.tier-list::-webkit-scrollbar { display: none; }
+
+.points-text { font-weight: bold; text-align: right; color: #6aa9ff; font-size: 22px; }
+
+
+
+/* TIER COLUMNS */
+
+.tier-grid {
+
+    display: grid; grid-template-columns: repeat(5, 1fr);
+
+    gap: 15px; width: 95%; max-width: 1400px; margin: 0 auto 50px;
+
+}
+
+.tier-column { background: rgba(22, 27, 34, 0.6); backdrop-filter: blur(5px); border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+
+.tier-header { padding: 15px; font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; justify-content: center; }
+
+.header-t1 { background: linear-gradient(180deg, #4a3707 0%, rgba(74,55,7,0) 100%); color: #ffcc00; }
+
+.header-t2 { background: linear-gradient(180deg, #2d2d2d 0%, rgba(45,45,45,0) 100%); color: #a0a0a0; }
+
+.header-t3 { background: linear-gradient(180deg, #3d2516 0%, rgba(61,37,22,0) 100%); color: #cd7f32; }
+
+.header-t4 { background: linear-gradient(180deg, #16263d 0%, rgba(22,38,61,0) 100%); color: #3fa9f5; }
+
+.header-t5 { background: linear-gradient(180deg, #26163d 0%, rgba(38,22,61,0) 100%); color: #9c6bff; }
+
+
+
+.player-list { display: flex; flex-direction: column; }
+
+.player-row {
+
+    display: flex; align-items: center; justify-content: space-between;
+
+    padding: 12px 16px; border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+
+    cursor: pointer; transition: 0.2s background-color; 
+
+    opacity: 0; transform: translateX(-20px);
+
+}
+
+.player-row:hover { background: rgba(255, 255, 255, 0.05); }
+
+.player-row.show { animation: slideIn 0.4s forwards; }
+
+.player-row.no-anim { opacity: 1; transform: translateX(0); animation: none; }
+
+
+
+.player-row-info { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; }
+
+.indicator { font-size: 14px; font-weight: 900; }
+
+.ht { color: #52fa9a; } .lt { color: #ff4d4d; }
+
+
+
+.tier-mini-box { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 42px; }
+
+.tier-mini-icon { width: 28px; height: 28px; background: transparent !important; transition: 0.2s; }
+
+.tier-mini-icon.faded { opacity: 0.25; filter: grayscale(100%); }
+
+.mini-badge { font-size: 11px; padding: 3px 5px; border-radius: 4px; font-weight: bold; width: 100%; text-align: center; }
+
+.mini-badge.untested { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+
+
+
+.HT1 { background: #ff3b3b; } .LT1 { background: #ff8a3b; }
+
+.HT2 { background: #ffcc00; color: black; } .LT2 { background: #e6b800; color: black; }
+
+.HT3 { background: #4caf50; } .LT3 { background: #3e8e41; }
+
+.HT4 { background: #3fa9f5; } .LT4 { background: #2f7ec1; }
+
+.HT5 { background: #9c6bff; } .LT5 { background: #7a52c7; }
+
+
+
+/* POPUP SYSTEM */
+
+@keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+@keyframes overlayFadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+@keyframes popupZoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+@keyframes popupZoomOut { from { opacity: 1; transform: scale(0.8); } to { opacity: 0; transform: scale(0.8); } }
+
+
+
+.popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+
+.popup-overlay.show { display: flex !important; animation: overlayFadeIn 0.3s ease-out forwards; }
+
+.popup-overlay.hide { display: flex !important; animation: overlayFadeOut 0.3s ease-in forwards; pointer-events: none; }
+
+.popup-content { display: none; background: #161b22; width: 600px; padding: 44px; border-radius: 26px; border: 1px solid var(--border-color); text-align: left; position: relative; max-height: 92vh; overflow-y: auto; }
+
+.popup-content.show { display: block !important; animation: popupZoomIn 0.3s ease-out forwards; }
+
+.popup-content.hide { display: block !important; animation: popupZoomOut 0.3s ease-in forwards; }
+
+
+
+.close-btn { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 24px; color: var(--text-dim); }
+
+.popup-header { display: flex; flex-direction: column; align-items: center; width: 100%; text-align: center; margin-bottom: 10px; }
+
+.popup-avatar-wrap { width: 130px; height: 130px; border-radius: 50%; overflow: hidden; border: 3px solid var(--rank-gold); margin-bottom: 18px; background: #1a1a1a; box-shadow: 0 5px 15px rgba(0,0,0,0.5); flex-shrink: 0; }
+
+.popup-avatar { width: 100%; height: auto; min-height: 210px; object-fit: cover; object-position: top center; margin-top: 8px; image-rendering: pixelated; }
+
+
+
+.popup-title-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 800; margin-top: 10px; margin-bottom: 6px; text-transform: uppercase; }
+
+.popup-title-grandmaster { color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); }
+
+.popup-title-master { color: #facc15; border: 1px solid rgba(250, 204, 21, 0.2); }
+
+.popup-title-ace { color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.2); }
+
+.popup-title-unverified { color: #8b949e; border: 1px solid rgba(139, 148, 158, 0.2); }
+
+
+
+.badges-container { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; align-items: center; }
+
+.namemc-btn { display: inline-flex; align-items: center; gap: 6px; background: #1c2128; border: 1px solid var(--border-color); padding: 8px 24px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.2s; }
+
+.namemc-btn:hover { background: #2d333b; }
+
+.namemc-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+
+
+.account-type-badge { padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+
+.type-premium { color: #22c55e; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); }
+
+.type-cracked { color: #f97316; background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.2); }
+
+
+
+.section-title { font-size: 15px; font-weight: bold; color: var(--text-dim); margin: 20px 0 10px 0; text-transform: uppercase; }
+
+.position-box { background: #0d1117; display: flex; align-items: center; border-radius: 8px; overflow: hidden; height: 50px; border: 1px solid var(--border-color); }
+
+.pos-num-wrap { position: relative; overflow: hidden; background: var(--rank-default); color: white; width: 65px; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; font-style: italic; clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%); }
+
+.pos-rank-1 { background: var(--rank-gold); color:#111; } .pos-rank-2 { background: var(--rank-silver); color:#111; } .pos-rank-3 { background: var(--rank-bronze); color:#111; }
+
+.pos-text { padding-left: 12px; font-weight: bold; font-size: 18px; color: white; text-transform: uppercase; }
+
+.pos-points { color: var(--text-dim); font-weight: normal; margin-left: 6px; font-size: 15px; }
+
+
+
+/* Enforced Single Line Display for Popup Tiers */
+
+.popup-tier-grid { 
+
+    background: #0d1117; padding: 18px; border-radius: 12px; 
+
+    display: flex; flex-wrap: nowrap; gap: 14px; 
+
+    border: 1px solid var(--border-color); 
+
+    justify-content: flex-start;
+
+    overflow-x: auto;
+
+    scrollbar-width: thin;
+
+    scrollbar-color: #30363d transparent;
+
+}
+
+.popup-tier-grid::-webkit-scrollbar { height: 6px; }
+
+.popup-tier-grid::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+
+
+@media screen and (max-width: 768px) {
+
+    .top-navbar { padding: 15px; flex-direction: column; gap: 15px; align-items: stretch; margin-bottom: 15px; width: 100%; }
+
+    .top-left { justify-content: center; }
+
+    .top-right { justify-content: center; }
+
+    .search-bar { width: 100%; max-width: 300px; }
+
+    .secondary-actions-container { justify-content: center; width: 100%; }
+
+    
+
+    .navbar-container { padding: 10px 10px 0 10px; width: 100%; max-width: 100%; margin-left: 0; border-radius: 0; box-sizing: border-box; }
+
+    .nav-item { min-width: 60px; padding: 10px 10px 8px 10px; font-size: 11px; border-radius: 8px 8px 0 0; }
+
+
+
+    /* Mobile overrides for player card and blocks */
+
+    .player-card { 
+
+        grid-template-columns: 1fr auto; 
+
+        grid-template-rows: auto auto auto; 
+
+        gap: 12px; 
+
+        padding: 18px 18px 18px 70px; /* Leaves space on the left */
+
+        position: relative;
+
+    }
+
+    .rank-num-box {
+
+        position: absolute;
+
+        left: 0;
+
+        top: 0;
+
+        height: 100%;
+
+        width: 55px;
+
+        font-size: 24px;
+
+        padding-left: 10px;
+
+        clip-path: polygon(0 0, 100% 0, 65% 100%, 0 100%);
+
+    }
+
+    .player-main { grid-column: 1; grid-row: 1; margin-left: 0; }
+
+    .region-tag { grid-column: 2; grid-row: 1; justify-self: end; }
+
+    .tier-list {
+
+        grid-column: 1 / span 2; grid-row: 2; margin-left: 0;
+
+        padding-top: 12px; border-top: 1px solid var(--border-color);
+
+        flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+
+        -webkit-overflow-scrolling: touch;
+
+        touch-action: pan-x;
+
+    }
+
+    .points-text { grid-column: 1 / span 2; grid-row: 3; text-align: left; font-size: 16px; margin-top: 5px; }
+
+    
+
+    .tier-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; width: 100%; padding: 0 15px 40px 15px; box-sizing: border-box; }
+
+    .tier-grid::-webkit-scrollbar { display: none; }
+
+    .tier-column { flex: 0 0 80%; min-width: 250px; scroll-snap-align: center; }
+
+
+
+    .popup-content { width: 92%; padding: 26px; border-radius: 18px; }
+
+    .popup-tier-grid {
+
+        flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+
+        -webkit-overflow-scrolling: touch;
+
+        touch-action: pan-x;
+
+        justify-content: flex-start;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+
+<!-- UPDATED TOP NAVBAR -->
+
+<div class="top-navbar">
+
+    <div class="top-left">
+
+        <img src="logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
+
+        <div class="title-text">High tiers</div>
+
+    </div>
+
+    <div class="top-right">
+
+        <div class="search-container">
+
+            <svg class="search-icon" viewBox="0 0 24 24">
+
+                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+
+            </svg>
+
+            <input type="text" class="search-bar" id="search" placeholder="Search player...">
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- KITS NAVBAR -->
+
+<div class="navbar-container" id="navbar">
+
+    <div class="nav-active-bar" id="navActiveBar"></div>
+
+    <a href="javascript:void(0)" class="nav-item active" id="tab-overall" onclick="switchTab('overall')"><img src="overall.svg" onerror="this.src='https://mctiers.com/tier_icons/overall.svg'">Overall</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-vanilla" onclick="switchTab('vanilla')"><img src="crystal.svg" onerror="this.src='https://mctiers.com/tier_icons/crystal.svg'">Vanilla</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-uhc" onclick="switchTab('uhc')"><img src="uhc.svg" onerror="this.src='https://mctiers.com/tier_icons/uhc.svg'">UHC</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-pot" onclick="switchTab('pot')"><img src="pot.svg" onerror="this.src='https://mctiers.com/tier_icons/pot.svg'">Pot</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-nethop" onclick="switchTab('nethop')"><img src="nethop.svg" onerror="this.src='https://mctiers.com/tier_icons/nethop.svg'">NethOP</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-smp" onclick="switchTab('smp')"><img src="smp.svg" onerror="this.src='https://mctiers.com/tier_icons/smp.svg'">SMP</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-sword" onclick="switchTab('sword')"><img src="sword.svg" onerror="this.src='https://mctiers.com/tier_icons/sword.svg'">Sword</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-axe" onclick="switchTab('axe')"><img src="axe.svg" onerror="this.src='https://mctiers.com/tier_icons/axe.svg'">Axe</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-mace" onclick="switchTab('mace')"><img src="mace.svg" onerror="this.src='https://mctiers.com/tier_icons/mace.svg'">Mace</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-spearmace" onclick="switchTab('spearmace')"><img src="spearmace.png" onerror="this.style.display='none'">SpearMace</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-cart" onclick="switchTab('cart')"><img src="cart.svg" onerror="this.style.display='none'">Cart</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-diasmp" onclick="switchTab('diasmp')"><img src="diasmp.svg" onerror="this.style.display='none'">DiaSMP</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-ogv" onclick="switchTab('ogv')"><img src="https://subtiers.net/assets/og_vanilla-bd47093f.svg" onerror="this.style.display='none'">OGV</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-speed" onclick="switchTab('speed')"><img src="https://subtiers.net/assets/speed-116175c6.svg" onerror="this.style.display='none'">Speed</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-elytra" onclick="switchTab('elytra')"><img src="https://subtiers.net/assets/elytra-73b66265.svg" onerror="this.style.display='none'">Elytra</a>
+
+    <a href="javascript:void(0)" class="nav-item" id="tab-trident" onclick="switchTab('trident')"><img src="https://subtiers.net/assets/trident-1c1a3e5a.svg" onerror="this.style.display='none'">Trident</a>
+
+</div>
+
+
+
+<!-- CUSTOM HORIZONTAL SCROLLBAR FOR KITS NAVBAR -->
+
+<div class="nav-scrollbar-track" id="navScrollTrack">
+
+    <div class="nav-scrollbar-thumb" id="navScrollThumb"></div>
+
+</div>
+
+
+
+<!-- SECONDARY ACTIONS -->
+
+<div class="secondary-actions-container">
+
+    <a href="https://discord.gg/spsQ3aEuk" target="_blank" class="action-btn discord-btn">
+
+        <svg viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+
+    </a>
+
+    <div class="action-btn ip-btn" onclick="copyServerIP('Coming Soon', this)">
+
+        <img src="ChatGPT Image Jun 18, 2026, 11_12_54 AM.png" class="ip-logo-img" alt="MEPVP Logo" onerror="this.style.display='none'">
+
+        <div class="ip-details">
+
+            <span class="ip-label">SERVER IP</span>
+
+            <span class="ip-value">Coming Soon</span>
+
+        </div>
+
+        <svg class="copy-icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+
+    </div>
+
+</div>
+
+
+
+<div class="container" id="playerList"></div>
+
+
+
+<div class="tier-grid" id="kitGrid" style="display: none;">
+
+    <div class="tier-column"><div class="tier-header header-t1">🏆 Tier 1</div><div class="player-list" id="t1-list"></div></div>
+
+    <div class="tier-column"><div class="tier-header header-t2">🥈 Tier 2</div><div class="player-list" id="t2-list"></div></div>
+
+    <div class="tier-column"><div class="tier-header header-t3">🥉 Tier 3</div><div class="player-list" id="t3-list"></div></div>
+
+    <div class="tier-column"><div class="tier-header header-t4">Tier 4</div><div class="player-list" id="t4-list"></div></div>
+
+    <div class="tier-column"><div class="tier-header header-t5">Tier 5</div><div class="player-list" id="t5-list"></div></div>
+
+</div>
+
+
+
+<div class="popup-overlay" id="overlay">
+
+    <div class="popup-content" id="popupContent">
+
+        <span class="close-btn" onclick="closePopup()">×</span>
+
+        <div class="popup-header">
+
+            <div class="popup-avatar-wrap"><img src="" id="pAvatar" class="popup-avatar"></div>
+
+            <h2 id="pName" style="margin:0; font-size: 28px;"></h2>
+
+            <div id="pTitleBadge" class="popup-title-badge"></div>
+
+            <p id="pRegion" style="color:var(--text-dim); margin-top:8px; margin-bottom: 6px; font-weight:bold; font-size: 18px;"></p>
+
+            
+
+            <div class="badges-container">
+
+                <a id="pNameMC" href="#" target="_blank" class="namemc-btn">
+
+                    <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+
+                    NameMC
+
+                </a>
+
+                <div id="pAccountType" class="account-type-badge"></div>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="section-title">Position</div>
+
+        <div class="position-box">
+
+            <div class="pos-num-wrap" id="pRankNum">1.</div>
+
+            <div class="pos-text" id="pPosText">🏆 OVERALL</div>
+
+            <div class="pos-points" id="pPointsBrackets"></div>
+
+        </div>
+
+
+
+        <div id="tiersSection">
+
+            <div class="section-title">Tiers</div>
+
+            <div class="popup-tier-grid" id="pTiers"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+const isFirstLoad = !sessionStorage.getItem('siteVisited');
+
+if (isFirstLoad) {
+
+    sessionStorage.setItem('siteVisited', 'true');
+
+}
+
+
+
+const kitIcons = { 
+
+    vanilla: "crystal.svg", uhc: "uhc.svg", pot: "pot.svg", nethop: "nethop.svg", 
+
+    smp: "smp.svg", sword: "sword.svg", axe: "axe.svg", mace: "mace.svg",
+
+    spearmace: "spearmace.png", cart: "cart.svg", diasmp: "diasmp.svg",
+
+    ogv: "https://subtiers.net/assets/og_vanilla-bd47093f.svg",
+
+    speed: "https://subtiers.net/assets/speed-116175c6.svg",
+
+    elytra: "https://subtiers.net/assets/elytra-73b66265.svg",
+
+    trident: "https://subtiers.net/assets/trident-1c1a3e5a.svg"
+
+};
+
+const allKits = ["vanilla", "uhc", "pot", "nethop", "smp", "sword", "axe", "mace", "spearmace", "cart", "diasmp", "ogv", "speed", "elytra", "trident"];
+
+const tierPoints = { HT1:60, LT1:45, HT2:30, LT2:20, HT3:10, LT3:6, HT4:4, LT4:3, HT5:2, LT5:1 };
+
+
+
+const iconMaster = `<svg class="title-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
+
+const iconAce = `<svg class="title-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L22 12L12 22L2 12L12 2Z"/></svg>`;
+
+
+
+// --- KATABUMP-HOSTED BOT API CONFIG ---
+const TIERLIST_API_URL = "https://51.75.118.151:20009/api/tierlist";
+const TIERLIST_WEBSITE_KEY = "wl_JuLq4tGgY3S7nCJoqM8CWtefFyXovuFUvyCpQD0NwiU";
+
+// Maps the "gamemodes[].name" values returned by the API to the kit IDs
+// already used throughout this page (see allKits above). Add/adjust
+// entries here if the bot introduces new gamemodes.
+const GAMEMODE_TO_KIT_ID = {
+    "Vanilla": "vanilla",
+    "UHC": "uhc",
+    "Potion": "pot",
+    "NethOp": "nethop",
+    "SMP": "smp",
+    "Sword": "sword",
+    "Axe": "axe",
+    "Mace": "mace",
+    "SpearMace": "spearmace",
+    "Cart": "cart",
+    "DiaSMP": "diasmp",
+    "OGVanilla": "ogv",
+    "Speed": "speed",
+    "Elytra": "elytra",
+    "Trident": "trident"
+};
+
+let processedPlayers = [];
+
+async function loadTierlist() {
+    let apiData = null;
+
+    try {
+        const response = await fetch(TIERLIST_API_URL, {
+            headers: {
+                "Authorization": `Bearer ${TIERLIST_WEBSITE_KEY}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Tierlist API request failed with status ${response.status}`);
+        }
+
+        apiData = await response.json();
+
+        if (!apiData || apiData.success !== true || !Array.isArray(apiData.gamemodes)) {
+            throw new Error("Tierlist API returned an unexpected response shape");
+        }
+    } catch (err) {
+        console.error("Failed to load tierlist data from Katabump API:", err);
+        apiData = { success: false, gamemodes: [] };
+    }
+
+    // Merge players across gamemodes into the same shape the renderer expects
+    const merged = {};
+
+    apiData.gamemodes.forEach(gamemode => {
+        const kitId = GAMEMODE_TO_KIT_ID[gamemode.name] || gamemode.name.toLowerCase();
+        if (!allKits.includes(kitId)) return;
+
+        (gamemode.players || []).forEach(p => {
+            const id = p.name + "_" + p.region;
+            if (!merged[id]) {
+                merged[id] = {
+                    name: p.name,
+                    region: p.region,
+                    type: p.accountType,
+                    Badge: p.badge ? 'True' : 'False',
+                    kitMap: {}
+                };
+            }
+
+            if (p.tier) merged[id].kitMap[kitId] = p.tier;
+        });
+    });
+
+    processedPlayers = Object.values(merged).map(p => {
+        let total = 0;
+        let hasKits = Object.keys(p.kitMap).length > 0;
+        Object.values(p.kitMap).forEach(t => total += (tierPoints[t] || 0));
+        return { ...p, points: total, hasKits: hasKits };
+    }).sort((a, b) => {
+        if (a.hasKits && !b.hasKits) return -1;
+        if (!a.hasKits && b.hasKits) return 1;
+        return b.points - a.points;
+    });
+
+    let cRank = 0;
+    let lPoints = -1;
+    processedPlayers.forEach((p) => {
+        if (p.hasKits) {
+            if (p.points !== lPoints) { cRank++; }
+            p.originalRank = cRank;
+            lPoints = p.points;
+        } else {
+            p.originalRank = "N/A";
+            p.points = "N/A";
+        }
+    });
+}
+
+
+
+function generateKitsHTML(kitMap) {
+
+    let tested = ""; let untested = "";
+
+    allKits.forEach(k => {
+
+        const t = kitMap[k];
+
+        const fadeClass = t ? "" : "faded";
+
+        const badgeClass = t ? t : "untested"; 
+
+        const badgeText = t ? t : "---"; 
+
+        const iconSrc = kitIcons[k];
+
+        const isRemoteIcon = /^https?:\/\//i.test(iconSrc);
+
+        const onerrorAttr = isRemoteIcon
+
+            ? `this.style.display='none'`
+
+            : `this.src='https://mctiers.com/tier_icons/${iconSrc}'`;
+
+        const html = `<div class="tier-mini-box"><img src="${iconSrc}" onerror="${onerrorAttr}" class="tier-mini-icon ${fadeClass}"><span class="mini-badge ${badgeClass}">${badgeText}</span></div>`;
+
+        if (t) tested += html; else untested += html;
+
+    });
+
+    return tested + untested; 
+
+}
+
+
+
+function updateNavIndicator() {
+
+    const activeItem = document.querySelector('.nav-item.active');
+
+    const indicator = document.getElementById('navActiveBar');
+
+    const container = document.getElementById('navbar');
+
+    
+
+    if (activeItem && indicator) {
+
+        indicator.style.width = activeItem.offsetWidth + 'px';
+
+        indicator.style.left = activeItem.offsetLeft + 'px';
+
+        
+
+        const scrollLeft = activeItem.offsetLeft - (container.offsetWidth / 2) + (activeItem.offsetWidth / 2);
+
+        container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+
+    }
+
+}
+
+
+
+window.addEventListener('resize', updateNavIndicator);
+
+
+
+// --- CUSTOM HORIZONTAL SCROLLBAR FOR THE KITS NAVBAR ---
+
+const navScrollTrack = document.getElementById('navScrollTrack');
+
+const navScrollThumb = document.getElementById('navScrollThumb');
+
+const navbarEl = document.getElementById('navbar');
+
+
+
+function updateNavScrollbar() {
+
+    if (!navbarEl || !navScrollTrack || !navScrollThumb) return;
+
+
+
+    const { scrollWidth, clientWidth, scrollLeft } = navbarEl;
+
+    const canScroll = scrollWidth > clientWidth + 1;
+
+
+
+    navScrollTrack.style.display = canScroll ? 'block' : 'none';
+
+    if (!canScroll) return;
+
+
+
+    const trackWidth = navScrollTrack.clientWidth;
+
+    const thumbWidth = Math.max((clientWidth / scrollWidth) * trackWidth, 40);
+
+    const maxThumbLeft = trackWidth - thumbWidth;
+
+    const maxScrollLeft = scrollWidth - clientWidth;
+
+    const thumbLeft = maxScrollLeft > 0 ? (scrollLeft / maxScrollLeft) * maxThumbLeft : 0;
+
+
+
+    navScrollThumb.style.width = thumbWidth + 'px';
+
+    navScrollThumb.style.left = thumbLeft + 'px';
+
+}
+
+
+
+if (navbarEl && navScrollTrack && navScrollThumb) {
+
+    navbarEl.addEventListener('scroll', updateNavScrollbar);
+
+    window.addEventListener('resize', updateNavScrollbar);
+
+
+
+    let isDragging = false;
+
+    let dragStartX = 0;
+
+    let dragStartScrollLeft = 0;
+
+
+
+    navScrollThumb.addEventListener('mousedown', (e) => {
+
+        isDragging = true;
+
+        dragStartX = e.clientX;
+
+        dragStartScrollLeft = navbarEl.scrollLeft;
+
+        navScrollThumb.classList.add('dragging');
+
+        e.preventDefault();
+
+    });
+
+
+
+    navScrollThumb.addEventListener('touchstart', (e) => {
+
+        isDragging = true;
+
+        dragStartX = e.touches[0].clientX;
+
+        dragStartScrollLeft = navbarEl.scrollLeft;
+
+        navScrollThumb.classList.add('dragging');
+
+    }, { passive: true });
+
+
+
+    function moveDrag(clientX) {
+
+        if (!isDragging) return;
+
+        const trackWidth = navScrollTrack.clientWidth;
+
+        const thumbWidth = navScrollThumb.offsetWidth;
+
+        const maxThumbLeft = trackWidth - thumbWidth;
+
+        const maxScrollLeft = navbarEl.scrollWidth - navbarEl.clientWidth;
+
+        const deltaX = clientX - dragStartX;
+
+        const deltaScrollRatio = maxThumbLeft > 0 ? (deltaX / maxThumbLeft) : 0;
+
+        navbarEl.scrollLeft = dragStartScrollLeft + deltaScrollRatio * maxScrollLeft;
+
+    }
+
+
+
+    window.addEventListener('mousemove', (e) => moveDrag(e.clientX));
+
+    window.addEventListener('touchmove', (e) => { if (isDragging) moveDrag(e.touches[0].clientX); }, { passive: true });
+
+
+
+    function endDrag() {
+
+        isDragging = false;
+
+        navScrollThumb.classList.remove('dragging');
+
+    }
+
+    window.addEventListener('mouseup', endDrag);
+
+    window.addEventListener('touchend', endDrag);
+
+
+
+    // Click anywhere on the track to jump straight to that position
+
+    navScrollTrack.addEventListener('click', (e) => {
+
+        if (e.target === navScrollThumb) return;
+
+        const rect = navScrollTrack.getBoundingClientRect();
+
+        const clickRatio = (e.clientX - rect.left) / rect.width;
+
+        const maxScrollLeft = navbarEl.scrollWidth - navbarEl.clientWidth;
+
+        navbarEl.scrollTo({ left: clickRatio * maxScrollLeft, behavior: 'smooth' });
+
+    });
+
+}
+
+
+
+function switchTab(tab, updateURL = true) {
+
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    document.getElementById('tab-' + tab).classList.add('active');
+
+
+
+    document.getElementById('search').value = "";
+
+    
+
+    updateNavIndicator();
+
+    
+
+    if (tab === 'overall') {
+
+        document.getElementById('playerList').style.display = 'block';
+
+        document.getElementById('kitGrid').style.display = 'none';
+
+        renderOverall();
+
+    } else {
+
+        document.getElementById('playerList').style.display = 'none';
+
+        document.getElementById('kitGrid').style.display = ''; 
+
+        renderKit(tab);
+
+    }
+
+
+
+    if (updateURL) {
+
+        window.history.pushState({ tab: tab }, "", "/" + tab);
+
+    }
+
+}
+
+
+
+function renderOverall() {
+
+    const container = document.getElementById('playerList');
+
+    container.innerHTML = "";
+
+    
+
+    const playersToRender = processedPlayers.filter(p => p.hasKits);
+
+    
+
+    playersToRender.forEach((p, index) => {
+
+        let titleText = "Combat Ace";
+
+        let titleClass = "title-ace";
+
+        let titleIcon = iconAce;
+
+
+
+        if (p.originalRank === 1) {
+
+            titleText = "Combat Grandmaster";
+
+            titleClass = "title-grandmaster";
+
+            titleIcon = iconMaster;
+
+        } else if (p.originalRank <= 3) {
+
+            titleText = "Combat Master";
+
+            titleClass = "title-master";
+
+            titleIcon = iconMaster;
+
+        }
+
+
+
+        const card = document.createElement('div');
+
+        card.className = `player-card rank-${p.originalRank <= 3 ? p.originalRank : 'none'}`;
+
+        const rainbowClass = p.Badge === 'True' ? 'rainbow-text' : '';
+
+
+
+        // Inject the slanted polygon background box
+
+        card.innerHTML = `
+
+            <div class="rank-num-box">${p.originalRank}.</div>
+
+            <div class="player-main">
+
+                <div class="player-avatar-wrap"><img src="https://mc-heads.net/body/${p.name}/right" class="player-avatar" alt=""></div>
+
+                <div class="player-info">
+
+                    <div class="player-name ${rainbowClass}">${p.name}</div>
+
+                    <div class="player-title ${titleClass}">
+
+                        ${titleIcon} ${titleText}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="region-tag ${p.region}">${p.region}</div>
+
+            <div class="tier-list">${generateKitsHTML(p.kitMap)}</div>
+
+            <div class="points-text">${p.points} pts</div>
+
+        `;
+
+        
+
+        card.onclick = () => openPopup(p);
+
+        
+
+        if (isFirstLoad) {
+
+            card.style.animationDelay = `${index * 0.05}s`;
+
+            container.appendChild(card);
+
+            setTimeout(() => card.classList.add('show'), 10);
+
+        } else {
+
+            card.classList.add('no-anim');
+
+            container.appendChild(card);
+
+        }
+
+    });
+
+}
+
+
+
+function renderKit(kitName) {
+
+    for (let i = 1; i <= 5; i++) {
+
+        const listDiv = document.getElementById(`t${i}-list`);
+
+        if(!listDiv) continue;
+
+        listDiv.innerHTML = "";
+
+        
+
+        const filtered = processedPlayers.filter(p => {
+
+            const v = p.kitMap[kitName];
+
+            return v && parseInt(v.replace(/\D/g, "")) === i;
+
+        });
+
+        
+
+        filtered.sort((a, b) => (b.kitMap[kitName].startsWith("HT") ? 1 : -1));
+
+
+
+        filtered.forEach((p, index) => {
+
+            const row = document.createElement('div');
+
+            row.className = "player-row";
+
+            row.onclick = () => openPopup(p);
+
+            
+
+            const isHT = p.kitMap[kitName].startsWith("HT");
+
+            const rainbowClass = p.Badge === 'True' ? 'rainbow-text' : '';
+
+
+
+            row.innerHTML = `
+
+                <div class="player-row-info">
+
+                    <div class="avatar-bust">
+
+                        <img src="https://mc-heads.net/body/${p.name}/right" class="player-avatar" alt="">
+
+                    </div>
+
+                    <span class="${rainbowClass}">${p.name}</span>
+
+                </div>
+
+                <span class="indicator ${isHT?'ht':'lt'}">${isHT?'▲':'▼'}</span>
+
+            `;
+
+            
+
+            if (isFirstLoad) {
+
+                row.style.animationDelay = `${index * 0.05}s`;
+
+                listDiv.appendChild(row);
+
+                setTimeout(() => row.classList.add('show'), 10);
+
+            } else {
+
+                row.classList.add('no-anim');
+
+                listDiv.appendChild(row);
+
+            }
+
+        });
+
+    }
+
+}
+
+
+
+function openPopup(p, searchedName = "") {
+
+    const overlay = document.getElementById('overlay');
+
+    const content = document.getElementById('popupContent');
+
+    
+
+    overlay.classList.remove('hide'); overlay.classList.add('show');
+
+    content.classList.remove('hide'); content.classList.add('show');
+
+
+
+    if (p) {
+
+        let titleText = "Combat Ace";
+
+        let badgeClass = "popup-title-ace";
+
+        let titleIcon = iconAce;
+
+        
+
+        if (p.originalRank === 1) {
+
+            titleText = "Combat Grandmaster";
+
+            badgeClass = "popup-title-grandmaster";
+
+            titleIcon = iconMaster;
+
+        } else if (p.originalRank === 2 || p.originalRank === 3) {
+
+            titleText = "Combat Master";
+
+            badgeClass = "popup-title-master";
+
+            titleIcon = iconMaster;
+
+        } else if (p.originalRank === "N/A") {
+
+            titleText = "Unranked";
+
+            badgeClass = "popup-title-unverified";
+
+            titleIcon = "";
+
+        }
+
+        
+
+        document.getElementById('pAvatar').src = `https://mc-heads.net/body/${p.name}/right`;
+
+        
+
+        const pNameElement = document.getElementById('pName');
+
+        pNameElement.innerText = p.name;
+
+        pNameElement.className = p.Badge === 'True' ? 'rainbow-text' : '';
+
+
+
+        const titleBadge = document.getElementById('pTitleBadge');
+
+        titleBadge.style.display = "inline-flex";
+
+        titleBadge.className = `popup-title-badge ${badgeClass}`;
+
+        titleBadge.innerHTML = titleIcon ? `${titleIcon} ${titleText}` : titleText;
+
+
+
+        const regionMap = { "NA": "North America", "EU": "Europe", "AS": "Asia", "ME": "Middle East", "PK": "Pakistan" };
+
+        document.getElementById('pRegion').innerText = regionMap[p.region] || p.region; 
+
+
+
+        document.getElementById('pNameMC').href = `https://namemc.com/profile/${p.name}`;
+
+        
+
+        const typeBadge = document.getElementById('pAccountType');
+
+        typeBadge.style.display = "inline-block";
+
+        if ((p.type || "").toLowerCase() === 'premium') {
+
+            typeBadge.className = "account-type-badge type-premium"; typeBadge.innerText = "Premium";
+
+        } else {
+
+            typeBadge.className = "account-type-badge type-cracked"; typeBadge.innerText = "Cracked";
+
+        }
+
+
+
+        const rankEl = document.getElementById('pRankNum');
+
+        rankEl.innerText = p.originalRank === "N/A" ? "N/A" : p.originalRank + ".";
+
+        rankEl.className = "pos-num-wrap";
+
+        if (p.originalRank === 1) rankEl.classList.add('pos-rank-1');
+
+        else if (p.originalRank === 2) rankEl.classList.add('pos-rank-2');
+
+        else if (p.originalRank === 3) rankEl.classList.add('pos-rank-3');
+
+        
+
+        document.getElementById('pPosText').innerHTML = `🏆 OVERALL`;
+
+        document.getElementById('pPointsBrackets').innerText = p.points === "N/A" ? "(N/A points)" : `(${p.points} points)`;
+
+        document.getElementById('pTiers').innerHTML = generateKitsHTML(p.kitMap);
+
+        document.getElementById('tiersSection').style.display = "block";
+
+    } else {
+
+        document.getElementById('pAvatar').src = `https://mc-heads.net/body/${searchedName}/right`;
+
+        
+
+        const pNameElement = document.getElementById('pName');
+
+        pNameElement.innerText = searchedName;
+
+        pNameElement.className = '';
+
+
+
+        const titleBadge = document.getElementById('pTitleBadge');
+
+        titleBadge.style.display = "inline-flex";
+
+        titleBadge.className = "popup-title-badge popup-title-unverified";
+
+        titleBadge.innerHTML = "Unverified";
+
+
+
+        document.getElementById('pRegion').innerText = "Unknown";
+
+        
+
+        document.getElementById('pNameMC').href = `https://namemc.com/profile/${searchedName}`;
+
+        
+
+        const typeBadge = document.getElementById('pAccountType');
+
+        typeBadge.style.display = "inline-block";
+
+        typeBadge.className = "account-type-badge";
+
+        typeBadge.innerText = "Checking...";
+
+        
+
+        fetch(`https://api.ashcon.app/mojang/v2/user/${searchedName}`)
+
+            .then(res => {
+
+                if (res.ok) {
+
+                    typeBadge.className = "account-type-badge type-premium";
+
+                    typeBadge.innerText = "Premium";
+
+                } else {
+
+                    typeBadge.className = "account-type-badge type-cracked";
+
+                    typeBadge.innerText = "Cracked";
+
+                }
+
+            })
+
+            .catch(() => {
+
+                typeBadge.className = "account-type-badge type-cracked";
+
+                typeBadge.innerText = "Cracked";
+
+            });
+
+
+
+        document.getElementById('pRankNum').innerText = "N/A";
+
+        document.getElementById('pRankNum').className = "pos-num-wrap"; 
+
+        document.getElementById('pPosText').innerHTML = `OVERALL`;
+
+        document.getElementById('pPointsBrackets').innerText = "(N/A points)";
+
+        
+
+        document.getElementById('pTiers').innerHTML = generateKitsHTML({});
+
+        document.getElementById('tiersSection').style.display = "block"; 
+
+    }
+
+}
+
+
+
+function closePopup() { 
+
+    const overlay = document.getElementById('overlay');
+
+    const content = document.getElementById('popupContent');
+
+    overlay.classList.replace('show', 'hide');
+
+    content.classList.replace('show', 'hide');
+
+    setTimeout(() => { overlay.classList.remove('hide'); content.classList.remove('hide'); }, 300); 
+
+}
+
+
+
+function copyServerIP(ip, element) {
+
+    if (ip === "Coming Soon") return;
+
+    navigator.clipboard.writeText(ip).then(() => {
+
+        const label = element.querySelector('.ip-label');
+
+        const originalText = label.innerText;
+
+        
+
+        label.innerText = 'COPIED!';
+
+        label.style.color = '#4ade80';
+
+        
+
+        setTimeout(() => {
+
+            label.innerText = originalText;
+
+            label.style.color = '';
+
+        }, 2000);
+
+    }).catch(err => console.error('Failed to copy text: ', err));
+
+}
+
+
+
+document.getElementById('search').addEventListener('keypress', (e) => {
+
+    if (e.key === 'Enter') {
+
+        const val = e.target.value.trim();
+
+        if(!val) return;
+
+        const found = processedPlayers.find(p => p.name.toLowerCase() === val.toLowerCase());
+
+        openPopup(found, val);
+
+    }
+
+});
+
+
+
+window.addEventListener('popstate', (event) => {
+
+    if (event.state && event.state.tab) {
+
+        switchTab(event.state.tab, false);
+
+    } else {
+
+        const pathTab = window.location.pathname.replace('/', '');
+
+        if (allKits.includes(pathTab) || pathTab === 'overall') {
+
+            switchTab(pathTab, false);
+
+        } else {
+
+            switchTab('overall', false);
+
+        }
+
+    }
+
+});
+
+
+
+window.addEventListener('DOMContentLoaded', async () => {
+
+    if (isFirstLoad) {
+
+        document.querySelectorAll('.nav-item').forEach((item, index) => {
+
+            item.classList.add('nav-item-anim');
+
+            item.style.animationDelay = `${index * 0.05}s`;
+
+        });
+
+    }
+
+
+
+    await loadTierlist();
+
+
+
+    const pathTab = window.location.pathname.replace('/', '');
+
+    
+
+    if (allKits.includes(pathTab) || pathTab === 'overall') {
+
+        switchTab(pathTab, false);
+
+    } else {
+
+        switchTab('overall', false);
+
+    }
+
+    
+
+    setTimeout(updateNavIndicator, 150);
+
+    setTimeout(updateNavScrollbar, 150);
+
+});
+
+
+
+</script>
+
+</body>
+
+</html>
