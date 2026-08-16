@@ -1182,38 +1182,49 @@ const SUPABASE_GUILD_ID = "1536976763119468604";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Known icons for the gamemodes that already ship with this site. This is a
-// COMPATIBILITY fallback only — Supabase's `gamemodes.icon_url` column (if
-// set by the bot) always wins. A brand new gamemode that isn't in this list
-// and has no icon_url simply renders without an icon, per spec.
-const LEGACY_ICON_FALLBACK = {
-    vanilla: "crystal.svg", crystal: "crystal.svg",
-    uhc: "uhc.svg",
-    pot: "pot.svg", potion: "pot.svg",
-    nethop: "nethop.svg", nethpot: "nethop.svg",
-    smp: "smp.svg",
-    sword: "sword.svg",
-    axe: "axe.svg",
-    mace: "mace.svg",
-    spearmace: "spearmace.png",
-    cart: "cart.svg",
-    diasmp: "diasmp.svg",
-    ogv: "https://subtiers.net/assets/og_vanilla-bd47093f.svg",
-    ogvanilla: "https://subtiers.net/assets/og_vanilla-bd47093f.svg",
-    speed: "https://subtiers.net/assets/speed-116175c6.svg",
-    elytra: "https://subtiers.net/assets/elytra-73b66265.svg",
-    trident: "https://subtiers.net/assets/trident-1c1a3e5a.svg"
-};
+// ============================================================================
+// THE 8 SUPPORTED KITS — this is the single source of truth for which kits
+// this website shows. Exactly these 8, always in this order, as tabs next to
+// "Overall". A gamemode row in Supabase only ever maps to one of these 8 (by
+// name/alias match below); anything else (old kits like Vanilla, Cart, OGV,
+// Speed, Elytra, Trident, DiaSMP, Spearmace, or any custom gamemode name that
+// doesn't match one of the 8) is simply never shown here — no extra tabs, no
+// orphan kits. This does NOT touch or delete that data in Supabase; it just
+// isn't rendered by this site anymore.
+//
+// `defaultIcon` is used until/unless the matching gamemode row in Supabase
+// has its own `icon_url` set (via `/gamemode icon` on the bot), which always
+// wins — same override behavior as before, just scoped to these 8.
+// ============================================================================
+const CANONICAL_KITS = [
+    { slug: 'nethpot', name: 'NethPot', defaultIcon: 'https://mctiers.com/tier_icons/nethop.svg', aliases: ['nethpot', 'nethop'] },
+    { slug: 'axe',     name: 'Axe',     defaultIcon: 'https://mctiers.com/tier_icons/axe.svg',    aliases: ['axe'] },
+    { slug: 'mace',    name: 'Mace',    defaultIcon: 'https://mctiers.com/tier_icons/mace.svg',   aliases: ['mace'] },
+    { slug: 'sword',   name: 'Sword',   defaultIcon: 'https://mctiers.com/tier_icons/sword.svg',  aliases: ['sword'] },
+    { slug: 'smp',     name: 'SMP',     defaultIcon: 'https://mctiers.com/tier_icons/smp.svg',    aliases: ['smp'] },
+    { slug: 'uhc',     name: 'UHC',     defaultIcon: 'https://mctiers.com/tier_icons/uhc.svg',    aliases: ['uhc'] },
+    { slug: 'crystal', name: 'Crystal', defaultIcon: 'https://mctiers.com/tier_icons/vanilla.svg', aliases: ['crystal'] },
+    { slug: 'diapot',  name: 'DiaPot',  defaultIcon: 'https://mctiers.com/tier_icons/pot.svg',    aliases: ['diapot', 'pot', 'potion', 'diapotion'] }
+];
 
-// Only used to pretty-print a gamemode name if a raw `kit` value on player_tiers
-// doesn't match any gamemode row at all (see resolveKitId below).
-const LEGACY_NAME_FALLBACK = {
-    vanilla: "Vanilla", uhc: "UHC", pot: "Potion", potion: "Potion",
-    nethop: "NethOp", nethpot: "NethOp", smp: "SMP", sword: "Sword",
-    axe: "Axe", mace: "Mace", spearmace: "SpearMace", cart: "Cart",
-    diasmp: "DiaSMP", ogv: "OGVanilla", ogvanilla: "OGVanilla",
-    speed: "Speed", elytra: "Elytra", trident: "Trident"
-};
+// Strips everything but lowercase letters/digits so "Neth Pot", "NethPot",
+// "neth-pot", and "NETHPOT" (as either a gamemode name or a raw `kit` value)
+// all normalize to the same alias key.
+function normKitKey(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// alias key -> canonical slug, built once from CANONICAL_KITS above.
+const KIT_ALIAS_TO_SLUG = {};
+CANONICAL_KITS.forEach(k => {
+    k.aliases.forEach(alias => { KIT_ALIAS_TO_SLUG[normKitKey(alias)] = k.slug; });
+});
+
+// Resolves any gamemode name or raw player_tiers.kit string to one of the 8
+// canonical slugs, or null if it isn't one of the 8 supported kits.
+function resolveCanonicalSlug(raw) {
+    return KIT_ALIAS_TO_SLUG[normKitKey(raw)] || null;
+}
 
 const tierPoints = { HT1:60, LT1:45, HT2:30, LT2:20, HT3:10, LT3:6, HT4:4, LT4:3, HT5:2, LT5:1 };
 
@@ -1222,31 +1233,22 @@ const iconMaster = `<svg class="title-icon" viewBox="0 0 24 24" fill="currentCol
 const iconAce = `<svg class="title-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L22 12L12 22L2 12L12 2Z"/></svg>`;
 
 // --- DYNAMIC GAMEMODE STATE ---
-// allKits/kitIcons/kitLabels used to be hardcoded constants. They're now
-// populated from Supabase every time loadTierlist() runs, and everything
-// downstream (generateKitsHTML, renderKit, routing, the popup) reads these
-// same variable names exactly as before — nothing else had to change.
-let allKits = [];
+// allKits/kitIcons/kitLabels are ALWAYS the fixed 8 canonical kits (see
+// CANONICAL_KITS above) — they no longer vary based on what happens to exist
+// in Supabase. What DOES come from Supabase each load is which of those 8
+// have a matching gamemode row (for the gamemode_id link + any custom
+// icon_url) and, ultimately, the actual player/tier data.
+// Everything downstream (generateKitsHTML, renderKit, routing, the popup)
+// reads these same variable names exactly as before — nothing else changed.
+let allKits = CANONICAL_KITS.map(k => k.slug);
 let kitIcons = {};
 let kitLabels = {};
 let processedPlayers = [];
-
-function slugify(name) {
-    const s = String(name || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-    return s || "gamemode";
-}
-
-function uniqueSlug(base, taken) {
-    let slug = base, n = 2;
-    while (taken.has(slug)) { slug = `${base}-${n}`; n++; }
-    taken.add(slug);
-    return slug;
-}
-
-function iconForSlug(slug, iconUrl) {
-    if (iconUrl) return iconUrl;
-    return LEGACY_ICON_FALLBACK[slug] || null;
-}
+CANONICAL_KITS.forEach(k => { kitIcons[k.slug] = k.defaultIcon; kitLabels[k.slug] = k.name; });
+// Render the 8 kit tabs right away — they're fixed and no longer depend on
+// the Supabase fetch finishing, so they sit next to "Overall" from first
+// paint (renderNavbar is defined further down but hoisted, so this is safe).
+renderNavbar();
 
 function showLoadError(show) {
     const banner = document.getElementById('tierlistErrorBanner');
@@ -1290,62 +1292,44 @@ async function loadTierlist() {
 
     showLoadError(false);
 
-    // --- Build the dynamic gamemode list (this drives the navbar) ---
-    const takenSlugs = new Set();
-    const enabledGamemodes = [];       // [{ id, name, slug, icon }] — published, shown as tabs
-    const gamemodeById = new Map();    // id -> the entry above
-    const enabledByNameLower = new Map();
-    const disabledIdSet = new Set();
-    const disabledNameLowerSet = new Set();
+    // --- Match Supabase's gamemode rows to the 8 canonical kits ---
+    // A gamemode not named like one of the 8 (Vanilla, Cart, OGV, Speed,
+    // Elytra, Trident, DiaSMP, Spearmace, or anything custom) is skipped
+    // entirely here — it never becomes a tab and its tier data is never
+    // rendered, per spec. Its rows are left completely untouched in Supabase.
+    const gamemodeIdToSlug = new Map();  // gamemode.id -> canonical slug (enabled + matched only)
+    const disabledSlugSet = new Set();   // canonical slug whose matching gamemode was disabled via /gamemode delete
+    const iconOverrideBySlug = {};       // canonical slug -> this guild's custom icon_url, if the bot set one
 
-    gamemodeRows
-        .slice()
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .forEach(row => {
-            if (row.enabled) {
-                const slug = uniqueSlug(slugify(row.name), takenSlugs);
-                const entry = { id: row.id, name: row.name, slug, icon: iconForSlug(slug, row.icon_url) };
-                enabledGamemodes.push(entry);
-                gamemodeById.set(row.id, entry);
-                enabledByNameLower.set(row.name.toLowerCase(), entry);
-            } else {
-                disabledIdSet.add(row.id);
-                disabledNameLowerSet.add(row.name.toLowerCase());
-            }
-        });
+    gamemodeRows.forEach(row => {
+        const slug = resolveCanonicalSlug(row.name);
+        if (!slug) return;
+        if (row.enabled) {
+            gamemodeIdToSlug.set(row.id, slug);
+            if (row.icon_url) iconOverrideBySlug[slug] = row.icon_url;
+        } else {
+            disabledSlugSet.add(slug);
+        }
+    });
 
-    // Orphan kits: real tier data whose gamemode was never (or is no longer)
-    // formally registered via /gamemode create. Still shown — per "do not
-    // destroy existing data" — as compatibility tabs, tracked separately so
-    // they can be appended to the navbar alongside the real gamemodes below.
-    const orphanGamemodes = [];
-    const orphanSlugsSeen = new Set();
+    // allKits/kitLabels are always the fixed 8, in the fixed order. Only the
+    // icon can vary per guild (falls back to the shared default icon above).
+    allKits = CANONICAL_KITS.map(k => k.slug);
+    kitIcons = {}; CANONICAL_KITS.forEach(k => { kitIcons[k.slug] = iconOverrideBySlug[k.slug] || k.defaultIcon; });
+    kitLabels = {}; CANONICAL_KITS.forEach(k => { kitLabels[k.slug] = k.name; });
 
-    // Resolves one player_tiers row to the kit id (slug) it should render
-    // under, or null if it should be hidden (belongs to a gamemode an admin
-    // has since disabled via /gamemode delete).
+    // Resolves one player_tiers row to the canonical slug it should render
+    // under, or null if it shouldn't be shown (not one of the 8 supported
+    // kits, or belongs to a gamemode an admin has since disabled).
     function resolveKitId(pt) {
-        if (pt.gamemode_id) {
-            if (disabledIdSet.has(pt.gamemode_id)) return null;
-            const byId = gamemodeById.get(pt.gamemode_id);
-            if (byId) return byId.slug;
+        if (pt.gamemode_id && gamemodeIdToSlug.has(pt.gamemode_id)) {
+            return gamemodeIdToSlug.get(pt.gamemode_id);
         }
-        const kitLower = String(pt.kit || "").toLowerCase();
-        if (disabledNameLowerSet.has(kitLower)) return null;
-        const byName = enabledByNameLower.get(kitLower);
-        if (byName) return byName.slug;
-
-        const slug = slugify(pt.kit);
-        if (!orphanSlugsSeen.has(slug)) {
-            orphanSlugsSeen.add(slug);
-            orphanGamemodes.push({ name: LEGACY_NAME_FALLBACK[slug] || pt.kit, slug, icon: iconForSlug(slug, null) });
-        }
+        const slug = resolveCanonicalSlug(pt.kit);
+        if (!slug) return null;
+        if (disabledSlugSet.has(slug)) return null;
         return slug;
     }
-
-    allKits = enabledGamemodes.map(g => g.slug);
-    kitIcons = {}; enabledGamemodes.forEach(g => { kitIcons[g.slug] = g.icon; });
-    kitLabels = {}; enabledGamemodes.forEach(g => { kitLabels[g.slug] = g.name; });
 
     // --- Merge players + their tiers into the exact shape the renderer expects ---
     const merged = {};
@@ -1367,12 +1351,6 @@ async function loadTierlist() {
         });
 
         if (Object.keys(entry.kitMap).length > 0) merged[id] = entry;
-    });
-
-    orphanGamemodes.forEach(g => {
-        allKits.push(g.slug);
-        kitIcons[g.slug] = g.icon;
-        kitLabels[g.slug] = g.name;
     });
 
     processedPlayers = Object.values(merged).map(p => {
@@ -1399,37 +1377,38 @@ async function loadTierlist() {
         }
     });
 
-    renderNavbar(enabledGamemodes.concat(orphanGamemodes).sort((a, b) => a.name.localeCompare(b.name)));
+    renderNavbar();
 }
 
-// Rebuilds the gamemode tabs (everything except the static "Overall" tab)
-// from the list Supabase just returned. No index.html edits needed for a
-// gamemode created after this page shipped — it just shows up here.
-function renderNavbar(enabledGamemodes) {
+// Rebuilds the 8 fixed kit tabs (everything except the static "Overall" tab)
+// next to Overall, always in the same order — CANONICAL_KITS never changes
+// at runtime, only each kit's icon can (if the bot set a custom icon_url).
+function renderNavbar() {
     const nav = document.getElementById('navbar');
     nav.querySelectorAll('.nav-item:not(#tab-overall)').forEach(el => el.remove());
 
-    enabledGamemodes.forEach(gm => {
+    CANONICAL_KITS.forEach(k => {
         const a = document.createElement('a');
         a.href = "javascript:void(0)";
         a.className = "nav-item";
-        a.id = "tab-" + gm.slug;
-        a.onclick = () => switchTab(gm.slug);
+        a.id = "tab-" + k.slug;
+        a.onclick = () => switchTab(k.slug);
 
-        if (gm.icon) {
+        const icon = kitIcons[k.slug] || k.defaultIcon;
+        if (icon) {
             const img = document.createElement('img');
-            img.src = gm.icon;
+            img.src = icon;
             img.onerror = function () { this.style.display = 'none'; };
             a.appendChild(img);
         }
 
-        a.appendChild(document.createTextNode(gm.name));
+        a.appendChild(document.createTextNode(k.name));
         nav.appendChild(a);
     });
 
-    // The currently active tab may have just been removed and re-created
-    // (e.g. after a Realtime refresh) — re-apply .active so the indicator
-    // and switchTab's own bookkeeping stay in sync.
+    // The currently active tab may have just been re-created (e.g. after a
+    // Realtime refresh) — re-apply .active so the indicator and switchTab's
+    // own bookkeeping stay in sync.
     const current = window.location.pathname.replace('/', '') || 'overall';
     const activeTab = document.getElementById('tab-' + current) || document.getElementById('tab-overall');
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
