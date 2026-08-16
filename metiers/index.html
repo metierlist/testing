@@ -1183,28 +1183,45 @@ const SUPABASE_GUILD_ID = "1536976763119468604";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================================================
-// THE 8 SUPPORTED KITS — this is the single source of truth for which kits
-// this website shows. Exactly these 8, always in this order, as tabs next to
-// "Overall". A gamemode row in Supabase only ever maps to one of these 8 (by
-// name/alias match below); anything else (old kits like Vanilla, Cart, OGV,
-// Speed, Elytra, Trident, DiaSMP, Spearmace, or any custom gamemode name that
-// doesn't match one of the 8) is simply never shown here — no extra tabs, no
-// orphan kits. This does NOT touch or delete that data in Supabase; it just
-// isn't rendered by this site anymore.
+// SUPPORTED KITS — this is the single source of truth for which kits this
+// website shows, always in this order, as tabs next to "Overall". A gamemode
+// row in Supabase only ever maps to one of these (by name/alias match below);
+// any custom gamemode name that doesn't match one of these is simply never
+// shown here — no extra tabs, no orphan kits. This does NOT touch or delete
+// that data in Supabase; it just isn't rendered by this site.
+//
+// Each kit's `aliases` list is deliberately generous: `normKitKey()` already
+// strips case, spaces, and punctuation, so "Nethpot", "NETHPOT", "NethOp",
+// "NethOP", "nethop", "neth-pot", "Neth Pot" all collapse to the same one or
+// two alias strings automatically. The extra aliases below exist to catch
+// genuinely different wordings (e.g. "Netherite Potion" vs "NethPot") that
+// don't reduce to the same letters. Add more strings to any kit's `aliases`
+// array any time a new format shows up in the wild — no other code needs to
+// change.
 //
 // `defaultIcon` is used until/unless the matching gamemode row in Supabase
 // has its own `icon_url` set (via `/gamemode icon` on the bot), which always
-// wins — same override behavior as before, just scoped to these 8.
+// wins.
 // ============================================================================
 const CANONICAL_KITS = [
-    { slug: 'nethpot', name: 'NethPot', defaultIcon: 'https://mctiers.com/tier_icons/nethop.svg', aliases: ['nethpot', 'nethop'] },
-    { slug: 'axe',     name: 'Axe',     defaultIcon: 'https://mctiers.com/tier_icons/axe.svg',    aliases: ['axe'] },
-    { slug: 'mace',    name: 'Mace',    defaultIcon: 'https://mctiers.com/tier_icons/mace.svg',   aliases: ['mace'] },
-    { slug: 'sword',   name: 'Sword',   defaultIcon: 'https://mctiers.com/tier_icons/sword.svg',  aliases: ['sword'] },
-    { slug: 'smp',     name: 'SMP',     defaultIcon: 'https://mctiers.com/tier_icons/smp.svg',    aliases: ['smp'] },
-    { slug: 'uhc',     name: 'UHC',     defaultIcon: 'https://mctiers.com/tier_icons/uhc.svg',    aliases: ['uhc'] },
-    { slug: 'crystal', name: 'Crystal', defaultIcon: 'https://mctiers.com/tier_icons/vanilla.svg', aliases: ['crystal'] },
-    { slug: 'diapot',  name: 'DiaPot',  defaultIcon: 'https://mctiers.com/tier_icons/pot.svg',    aliases: ['diapot', 'pot', 'potion', 'diapotion'] }
+    { slug: 'nethpot', name: 'NethPot', defaultIcon: 'https://mctiers.com/tier_icons/nethop.svg',
+      aliases: ['nethpot', 'nethop', 'netherpot', 'netheritepot', 'netheritepotion', 'netherpotion', 'npot', 'netherpvp'] },
+    { slug: 'axe',     name: 'Axe',     defaultIcon: 'https://mctiers.com/tier_icons/axe.svg',
+      aliases: ['axe', 'axes', 'axepvp', 'diaaxe', 'diamondaxe'] },
+    { slug: 'mace',    name: 'Mace',    defaultIcon: 'https://mctiers.com/tier_icons/mace.svg',
+      aliases: ['mace', 'maces', 'macepvp'] },
+    { slug: 'sword',   name: 'Sword',   defaultIcon: 'https://mctiers.com/tier_icons/sword.svg',
+      aliases: ['sword', 'swords', 'swordpvp', 'diasword', 'diamondsword'] },
+    { slug: 'smp',     name: 'SMP',     defaultIcon: 'https://mctiers.com/tier_icons/smp.svg',
+      aliases: ['smp', 'survival', 'survivalmultiplayer', 'smppvp'] },
+    { slug: 'uhc',     name: 'UHC',     defaultIcon: 'https://mctiers.com/tier_icons/uhc.svg',
+      aliases: ['uhc', 'ultrahardcore', 'uhcpvp'] },
+    { slug: 'crystal', name: 'Crystal', defaultIcon: 'https://mctiers.com/tier_icons/vanilla.svg',
+      aliases: ['crystal', 'crystals', 'crystalpvp', 'cpvp', 'crystalaxe'] },
+    { slug: 'diapot',  name: 'DiaPot',  defaultIcon: 'https://mctiers.com/tier_icons/pot.svg',
+      aliases: ['diapot', 'pot', 'potion', 'diapotion', 'diamondpot', 'diamondpotion', 'dpot', 'diapots', 'potpvp'] },
+    { slug: 'diasmp',  name: 'DiaSMP',  defaultIcon: 'https://mctiers.com/tier_icons/smp.svg',
+      aliases: ['diasmp', 'diamondsmp', 'dsmp', 'diasurvival'] }
 ];
 
 // Strips everything but lowercase letters/digits so "Neth Pot", "NethPot",
@@ -1221,7 +1238,7 @@ CANONICAL_KITS.forEach(k => {
 });
 
 // Resolves any gamemode name or raw player_tiers.kit string to one of the 8
-// canonical slugs, or null if it isn't one of the 8 supported kits.
+// canonical slugs, or null if it isn't one of the supported kits.
 function resolveCanonicalSlug(raw) {
     return KIT_ALIAS_TO_SLUG[normKitKey(raw)] || null;
 }
@@ -1233,7 +1250,7 @@ const iconMaster = `<svg class="title-icon" viewBox="0 0 24 24" fill="currentCol
 const iconAce = `<svg class="title-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L22 12L12 22L2 12L12 2Z"/></svg>`;
 
 // --- DYNAMIC GAMEMODE STATE ---
-// allKits/kitIcons/kitLabels are ALWAYS the fixed 8 canonical kits (see
+// allKits/kitIcons/kitLabels are ALWAYS the fixed canonical kits (see
 // CANONICAL_KITS above) — they no longer vary based on what happens to exist
 // in Supabase. What DOES come from Supabase each load is which of those 8
 // have a matching gamemode row (for the gamemode_id link + any custom
@@ -1245,7 +1262,7 @@ let kitIcons = {};
 let kitLabels = {};
 let processedPlayers = [];
 CANONICAL_KITS.forEach(k => { kitIcons[k.slug] = k.defaultIcon; kitLabels[k.slug] = k.name; });
-// Render the 8 kit tabs right away — they're fixed and no longer depend on
+// Render the kit tabs right away — they're fixed and no longer depend on
 // the Supabase fetch finishing, so they sit next to "Overall" from first
 // paint (renderNavbar is defined further down but hoisted, so this is safe).
 renderNavbar();
@@ -1319,7 +1336,7 @@ async function loadTierlist() {
     kitLabels = {}; CANONICAL_KITS.forEach(k => { kitLabels[k.slug] = k.name; });
 
     // Resolves one player_tiers row to the canonical slug it should render
-    // under, or null if it shouldn't be shown (not one of the 8 supported
+    // under, or null if it shouldn't be shown (not one of the supported
     // kits, or belongs to a gamemode an admin has since disabled).
     function resolveKitId(pt) {
         if (pt.gamemode_id && gamemodeIdToSlug.has(pt.gamemode_id)) {
@@ -1380,7 +1397,7 @@ async function loadTierlist() {
     renderNavbar();
 }
 
-// Rebuilds the 8 fixed kit tabs (everything except the static "Overall" tab)
+// Rebuilds the fixed kit tabs (everything except the static "Overall" tab)
 // next to Overall, always in the same order — CANONICAL_KITS never changes
 // at runtime, only each kit's icon can (if the bot set a custom icon_url).
 function renderNavbar() {
