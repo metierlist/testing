@@ -10,7 +10,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-
+<!-- Supabase JS client — the website talks to Supabase directly (read-only, anon key). -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <style>
 
@@ -1013,35 +1014,8 @@ body::after {
 
     <a href="javascript:void(0)" class="nav-item active" id="tab-overall" onclick="switchTab('overall')"><img src="overall.svg" onerror="this.src='https://mctiers.com/tier_icons/overall.svg'">Overall</a>
 
-    <a href="javascript:void(0)" class="nav-item" id="tab-vanilla" onclick="switchTab('vanilla')"><img src="crystal.svg" onerror="this.src='https://mctiers.com/tier_icons/crystal.svg'">Vanilla</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-uhc" onclick="switchTab('uhc')"><img src="uhc.svg" onerror="this.src='https://mctiers.com/tier_icons/uhc.svg'">UHC</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-pot" onclick="switchTab('pot')"><img src="pot.svg" onerror="this.src='https://mctiers.com/tier_icons/pot.svg'">Pot</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-nethop" onclick="switchTab('nethop')"><img src="nethop.svg" onerror="this.src='https://mctiers.com/tier_icons/nethop.svg'">NethOP</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-smp" onclick="switchTab('smp')"><img src="smp.svg" onerror="this.src='https://mctiers.com/tier_icons/smp.svg'">SMP</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-sword" onclick="switchTab('sword')"><img src="sword.svg" onerror="this.src='https://mctiers.com/tier_icons/sword.svg'">Sword</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-axe" onclick="switchTab('axe')"><img src="axe.svg" onerror="this.src='https://mctiers.com/tier_icons/axe.svg'">Axe</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-mace" onclick="switchTab('mace')"><img src="mace.svg" onerror="this.src='https://mctiers.com/tier_icons/mace.svg'">Mace</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-spearmace" onclick="switchTab('spearmace')"><img src="spearmace.png" onerror="this.style.display='none'">SpearMace</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-cart" onclick="switchTab('cart')"><img src="cart.svg" onerror="this.style.display='none'">Cart</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-diasmp" onclick="switchTab('diasmp')"><img src="diasmp.svg" onerror="this.style.display='none'">DiaSMP</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-ogv" onclick="switchTab('ogv')"><img src="https://subtiers.net/assets/og_vanilla-bd47093f.svg" onerror="this.style.display='none'">OGV</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-speed" onclick="switchTab('speed')"><img src="https://subtiers.net/assets/speed-116175c6.svg" onerror="this.style.display='none'">Speed</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-elytra" onclick="switchTab('elytra')"><img src="https://subtiers.net/assets/elytra-73b66265.svg" onerror="this.style.display='none'">Elytra</a>
-
-    <a href="javascript:void(0)" class="nav-item" id="tab-trident" onclick="switchTab('trident')"><img src="https://subtiers.net/assets/trident-1c1a3e5a.svg" onerror="this.style.display='none'">Trident</a>
+    <!-- Gamemode tabs are generated dynamically by renderNavbar() from Supabase's `gamemodes`
+         table (see loadTierlist() in the script below). Nothing else goes here by hand. -->
 
 </div>
 
@@ -1086,6 +1060,10 @@ body::after {
 </div>
 
 
+
+<div id="tierlistErrorBanner" style="display:none; max-width:600px; margin:60px auto; padding:20px 24px; border-radius:10px; background:rgba(220,38,38,0.12); border:1px solid rgba(220,38,38,0.4); color:#fca5a5; text-align:center; font-size:15px;">
+    Failed to load tierlist data.
+</div>
 
 <div class="container" id="playerList"></div>
 
@@ -1183,108 +1161,218 @@ if (isFirstLoad) {
 
 
 
-const kitIcons = { 
+// ============================================================================
+// SUPABASE CONFIG — fill these in for your project.
+// ============================================================================
+// Where to find them: Supabase dashboard -> Project Settings -> API.
+//   SUPABASE_URL      = "Project URL"
+//   SUPABASE_ANON_KEY = "anon public" key (safe to expose client-side — it can
+//                        only SELECT, never write, because of the read-only
+//                        RLS policies set up in supabase_migration_website_readonly.sql)
+//   SUPABASE_GUILD_ID = the Discord server (guild) ID whose tierlist this
+//                        particular website should display. Every table in
+//                        this schema is scoped by guild_id (the bot can run in
+//                        many servers), so the website has to say which one
+//                        it is. Right-click your server icon in Discord with
+//                        Developer Mode on -> "Copy Server ID".
+// NEVER put the service_role key here — only the anon key.
+const SUPABASE_URL = "https://isvvecdwkkvstnaeodgg.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_GrAVgtIHK_BmqLLfRoLeXw_eTLYPSCm";
+const SUPABASE_GUILD_ID = "1536976763119468604";
 
-    vanilla: "crystal.svg", uhc: "uhc.svg", pot: "pot.svg", nethop: "nethop.svg", 
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    smp: "smp.svg", sword: "sword.svg", axe: "axe.svg", mace: "mace.svg",
-
-    spearmace: "spearmace.png", cart: "cart.svg", diasmp: "diasmp.svg",
-
+// Known icons for the gamemodes that already ship with this site. This is a
+// COMPATIBILITY fallback only — Supabase's `gamemodes.icon_url` column (if
+// set by the bot) always wins. A brand new gamemode that isn't in this list
+// and has no icon_url simply renders without an icon, per spec.
+const LEGACY_ICON_FALLBACK = {
+    vanilla: "crystal.svg", crystal: "crystal.svg",
+    uhc: "uhc.svg",
+    pot: "pot.svg", potion: "pot.svg",
+    nethop: "nethop.svg", nethpot: "nethop.svg",
+    smp: "smp.svg",
+    sword: "sword.svg",
+    axe: "axe.svg",
+    mace: "mace.svg",
+    spearmace: "spearmace.png",
+    cart: "cart.svg",
+    diasmp: "diasmp.svg",
     ogv: "https://subtiers.net/assets/og_vanilla-bd47093f.svg",
-
+    ogvanilla: "https://subtiers.net/assets/og_vanilla-bd47093f.svg",
     speed: "https://subtiers.net/assets/speed-116175c6.svg",
-
     elytra: "https://subtiers.net/assets/elytra-73b66265.svg",
-
     trident: "https://subtiers.net/assets/trident-1c1a3e5a.svg"
-
 };
 
-const allKits = ["vanilla", "uhc", "pot", "nethop", "smp", "sword", "axe", "mace", "spearmace", "cart", "diasmp", "ogv", "speed", "elytra", "trident"];
+// Only used to pretty-print a gamemode name if a raw `kit` value on player_tiers
+// doesn't match any gamemode row at all (see resolveKitId below).
+const LEGACY_NAME_FALLBACK = {
+    vanilla: "Vanilla", uhc: "UHC", pot: "Potion", potion: "Potion",
+    nethop: "NethOp", nethpot: "NethOp", smp: "SMP", sword: "Sword",
+    axe: "Axe", mace: "Mace", spearmace: "SpearMace", cart: "Cart",
+    diasmp: "DiaSMP", ogv: "OGVanilla", ogvanilla: "OGVanilla",
+    speed: "Speed", elytra: "Elytra", trident: "Trident"
+};
 
 const tierPoints = { HT1:60, LT1:45, HT2:30, LT2:20, HT3:10, LT3:6, HT4:4, LT4:3, HT5:2, LT5:1 };
-
-
 
 const iconMaster = `<svg class="title-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
 
 const iconAce = `<svg class="title-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L22 12L12 22L2 12L12 2Z"/></svg>`;
 
-
-
-// --- KATABUMP-HOSTED BOT API CONFIG ---
-const TIERLIST_API_URL = "http://51.75.118.151:20009/api/tierlist";
-const TIERLIST_WEBSITE_KEY = "wl_rHDalYPNbUgzqw0zAKQFU5arWkMH0BxaIwPF188O7eg";
-
-// Maps the "gamemodes[].name" values returned by the API to the kit IDs
-// already used throughout this page (see allKits above). Add/adjust
-// entries here if the bot introduces new gamemodes.
-const GAMEMODE_TO_KIT_ID = {
-    "Vanilla": "vanilla",
-    "UHC": "uhc",
-    "Potion": "pot",
-    "NethOp": "nethop",
-    "SMP": "smp",
-    "Sword": "sword",
-    "Axe": "axe",
-    "Mace": "mace",
-    "SpearMace": "spearmace",
-    "Cart": "cart",
-    "DiaSMP": "diasmp",
-    "OGVanilla": "ogv",
-    "Speed": "speed",
-    "Elytra": "elytra",
-    "Trident": "trident"
-};
-
+// --- DYNAMIC GAMEMODE STATE ---
+// allKits/kitIcons/kitLabels used to be hardcoded constants. They're now
+// populated from Supabase every time loadTierlist() runs, and everything
+// downstream (generateKitsHTML, renderKit, routing, the popup) reads these
+// same variable names exactly as before — nothing else had to change.
+let allKits = [];
+let kitIcons = {};
+let kitLabels = {};
 let processedPlayers = [];
 
+function slugify(name) {
+    const s = String(name || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    return s || "gamemode";
+}
+
+function uniqueSlug(base, taken) {
+    let slug = base, n = 2;
+    while (taken.has(slug)) { slug = `${base}-${n}`; n++; }
+    taken.add(slug);
+    return slug;
+}
+
+function iconForSlug(slug, iconUrl) {
+    if (iconUrl) return iconUrl;
+    return LEGACY_ICON_FALLBACK[slug] || null;
+}
+
+function showLoadError(show) {
+    const banner = document.getElementById('tierlistErrorBanner');
+    const list = document.getElementById('playerList');
+    const grid = document.getElementById('kitGrid');
+    if (!banner) return;
+    banner.style.display = show ? 'block' : 'none';
+    if (show) { list.style.display = 'none'; grid.style.display = 'none'; }
+}
+
+// Fetches gamemodes + players/tiers for SUPABASE_GUILD_ID and rebuilds
+// allKits/kitIcons/kitLabels/processedPlayers from scratch. Called on first
+// load, on manual refresh, and (debounced) whenever Realtime reports a change.
 async function loadTierlist() {
-    let apiData = null;
+    let gamemodeRows, playerRows;
 
     try {
-        const response = await fetch(TIERLIST_API_URL, {
-            headers: {
-                "Authorization": `Bearer ${TIERLIST_WEBSITE_KEY}`
-            }
-        });
+        const [gmRes, plRes] = await Promise.all([
+            supabaseClient
+                .from('gamemodes')
+                .select('id, name, enabled, icon_url')
+                .eq('guild_id', SUPABASE_GUILD_ID),
+            supabaseClient
+                .from('players')
+                .select('name, region, account_type, badge, player_tiers(kit, tier, gamemode_id)')
+                .eq('guild_id', SUPABASE_GUILD_ID)
+        ]);
 
-        if (!response.ok) {
-            throw new Error(`Tierlist API request failed with status ${response.status}`);
-        }
+        if (gmRes.error) throw gmRes.error;
+        if (plRes.error) throw plRes.error;
 
-        apiData = await response.json();
-
-        if (!apiData || apiData.success !== true || !Array.isArray(apiData.gamemodes)) {
-            throw new Error("Tierlist API returned an unexpected response shape");
-        }
+        gamemodeRows = gmRes.data || [];
+        playerRows = plRes.data || [];
     } catch (err) {
-        console.error("Failed to load tierlist data from Katabump API:", err);
-        apiData = { success: false, gamemodes: [] };
+        // Covers invalid URL/key, RLS errors, and network failures alike —
+        // technical details go to the console only, never to the page.
+        console.error("Failed to load tierlist data from Supabase:", err);
+        showLoadError(true);
+        return;
     }
 
-    // Merge players across gamemodes into the same shape the renderer expects
+    showLoadError(false);
+
+    // --- Build the dynamic gamemode list (this drives the navbar) ---
+    const takenSlugs = new Set();
+    const enabledGamemodes = [];       // [{ id, name, slug, icon }] — published, shown as tabs
+    const gamemodeById = new Map();    // id -> the entry above
+    const enabledByNameLower = new Map();
+    const disabledIdSet = new Set();
+    const disabledNameLowerSet = new Set();
+
+    gamemodeRows
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .forEach(row => {
+            if (row.enabled) {
+                const slug = uniqueSlug(slugify(row.name), takenSlugs);
+                const entry = { id: row.id, name: row.name, slug, icon: iconForSlug(slug, row.icon_url) };
+                enabledGamemodes.push(entry);
+                gamemodeById.set(row.id, entry);
+                enabledByNameLower.set(row.name.toLowerCase(), entry);
+            } else {
+                disabledIdSet.add(row.id);
+                disabledNameLowerSet.add(row.name.toLowerCase());
+            }
+        });
+
+    // Orphan kits: real tier data whose gamemode was never (or is no longer)
+    // formally registered via /gamemode create. Still shown — per "do not
+    // destroy existing data" — as compatibility tabs, tracked separately so
+    // they can be appended to the navbar alongside the real gamemodes below.
+    const orphanGamemodes = [];
+    const orphanSlugsSeen = new Set();
+
+    // Resolves one player_tiers row to the kit id (slug) it should render
+    // under, or null if it should be hidden (belongs to a gamemode an admin
+    // has since disabled via /gamemode delete).
+    function resolveKitId(pt) {
+        if (pt.gamemode_id) {
+            if (disabledIdSet.has(pt.gamemode_id)) return null;
+            const byId = gamemodeById.get(pt.gamemode_id);
+            if (byId) return byId.slug;
+        }
+        const kitLower = String(pt.kit || "").toLowerCase();
+        if (disabledNameLowerSet.has(kitLower)) return null;
+        const byName = enabledByNameLower.get(kitLower);
+        if (byName) return byName.slug;
+
+        const slug = slugify(pt.kit);
+        if (!orphanSlugsSeen.has(slug)) {
+            orphanSlugsSeen.add(slug);
+            orphanGamemodes.push({ name: LEGACY_NAME_FALLBACK[slug] || pt.kit, slug, icon: iconForSlug(slug, null) });
+        }
+        return slug;
+    }
+
+    allKits = enabledGamemodes.map(g => g.slug);
+    kitIcons = {}; enabledGamemodes.forEach(g => { kitIcons[g.slug] = g.icon; });
+    kitLabels = {}; enabledGamemodes.forEach(g => { kitLabels[g.slug] = g.name; });
+
+    // --- Merge players + their tiers into the exact shape the renderer expects ---
     const merged = {};
 
-    apiData.gamemodes.forEach(gamemode => {
-        const kitId = GAMEMODE_TO_KIT_ID[gamemode.name] || gamemode.name.toLowerCase();
-        if (!allKits.includes(kitId)) return;
+    playerRows.forEach(row => {
+        const id = row.name + "_" + row.region;
+        const entry = {
+            name: row.name,
+            region: row.region,
+            type: row.account_type,
+            Badge: row.badge ? 'True' : 'False',
+            kitMap: {}
+        };
 
-        (gamemode.players || []).forEach(p => {
-            const id = p.name + "_" + p.region;
-            if (!merged[id]) {
-                merged[id] = {
-                    name: p.name,
-                    region: p.region,
-                    type: p.accountType,
-                    Badge: p.badge ? 'True' : 'False',
-                    kitMap: {}
-                };
-            }
-
-            if (p.tier) merged[id].kitMap[kitId] = p.tier;
+        (row.player_tiers || []).forEach(pt => {
+            if (!pt.tier) return;
+            const kitId = resolveKitId(pt);
+            if (kitId) entry.kitMap[kitId] = pt.tier;
         });
+
+        if (Object.keys(entry.kitMap).length > 0) merged[id] = entry;
+    });
+
+    orphanGamemodes.forEach(g => {
+        allKits.push(g.slug);
+        kitIcons[g.slug] = g.icon;
+        kitLabels[g.slug] = g.name;
     });
 
     processedPlayers = Object.values(merged).map(p => {
@@ -1310,6 +1398,67 @@ async function loadTierlist() {
             p.points = "N/A";
         }
     });
+
+    renderNavbar(enabledGamemodes.concat(orphanGamemodes).sort((a, b) => a.name.localeCompare(b.name)));
+}
+
+// Rebuilds the gamemode tabs (everything except the static "Overall" tab)
+// from the list Supabase just returned. No index.html edits needed for a
+// gamemode created after this page shipped — it just shows up here.
+function renderNavbar(enabledGamemodes) {
+    const nav = document.getElementById('navbar');
+    nav.querySelectorAll('.nav-item:not(#tab-overall)').forEach(el => el.remove());
+
+    enabledGamemodes.forEach(gm => {
+        const a = document.createElement('a');
+        a.href = "javascript:void(0)";
+        a.className = "nav-item";
+        a.id = "tab-" + gm.slug;
+        a.onclick = () => switchTab(gm.slug);
+
+        if (gm.icon) {
+            const img = document.createElement('img');
+            img.src = gm.icon;
+            img.onerror = function () { this.style.display = 'none'; };
+            a.appendChild(img);
+        }
+
+        a.appendChild(document.createTextNode(gm.name));
+        nav.appendChild(a);
+    });
+
+    // The currently active tab may have just been removed and re-created
+    // (e.g. after a Realtime refresh) — re-apply .active so the indicator
+    // and switchTab's own bookkeeping stay in sync.
+    const current = window.location.pathname.replace('/', '') || 'overall';
+    const activeTab = document.getElementById('tab-' + current) || document.getElementById('tab-overall');
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    activeTab.classList.add('active');
+}
+
+// --- SUPABASE REALTIME: pick up bot-side changes without a manual refresh ---
+// Debounced so a burst of writes (e.g. bulk tier import) triggers one reload,
+// not one per row. Falls back to nothing fancy if Realtime is unavailable —
+// worst case the page just shows what it loaded on open.
+let realtimeRefreshTimer = null;
+function scheduleTierlistRefresh() {
+    clearTimeout(realtimeRefreshTimer);
+    realtimeRefreshTimer = setTimeout(async () => {
+        await loadTierlist();
+        const current = window.location.pathname.replace('/', '') || 'overall';
+        switchTab(allKits.includes(current) || current === 'overall' ? current : 'overall', false);
+    }, 1500);
+}
+
+try {
+    supabaseClient
+        .channel('tierlist-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'players', filter: `guild_id=eq.${SUPABASE_GUILD_ID}` }, scheduleTierlistRefresh)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'player_tiers', filter: `guild_id=eq.${SUPABASE_GUILD_ID}` }, scheduleTierlistRefresh)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'gamemodes', filter: `guild_id=eq.${SUPABASE_GUILD_ID}` }, scheduleTierlistRefresh)
+        .subscribe();
+} catch (err) {
+    console.error("Supabase Realtime unavailable, falling back to load-on-open only:", err);
 }
 
 
@@ -1330,15 +1479,19 @@ function generateKitsHTML(kitMap) {
 
         const iconSrc = kitIcons[k];
 
-        const isRemoteIcon = /^https?:\/\//i.test(iconSrc);
+        let imgTag;
+        if (!iconSrc) {
+            // No icon known for this gamemode (new one, no icon_url set yet) — skip the icon per spec.
+            imgTag = "";
+        } else {
+            const isRemoteIcon = /^https?:\/\//i.test(iconSrc);
+            const onerrorAttr = isRemoteIcon
+                ? `this.style.display='none'`
+                : `this.src='https://mctiers.com/tier_icons/${iconSrc}'; this.onerror=function(){this.style.display='none'};`;
+            imgTag = `<img src="${iconSrc}" onerror="${onerrorAttr}" class="tier-mini-icon ${fadeClass}">`;
+        }
 
-        const onerrorAttr = isRemoteIcon
-
-            ? `this.style.display='none'`
-
-            : `this.src='https://mctiers.com/tier_icons/${iconSrc}'`;
-
-        const html = `<div class="tier-mini-box"><img src="${iconSrc}" onerror="${onerrorAttr}" class="tier-mini-icon ${fadeClass}"><span class="mini-badge ${badgeClass}">${badgeText}</span></div>`;
+        const html = `<div class="tier-mini-box">${imgTag}<span class="mini-badge ${badgeClass}">${badgeText}</span></div>`;
 
         if (t) tested += html; else untested += html;
 
@@ -2088,6 +2241,11 @@ window.addEventListener('popstate', (event) => {
 
 window.addEventListener('DOMContentLoaded', async () => {
 
+    await loadTierlist();
+
+    // Nav tabs are only fully built once loadTierlist() has fetched the
+    // gamemode list from Supabase, so the first-load pop-in animation is
+    // applied here rather than before the fetch.
     if (isFirstLoad) {
 
         document.querySelectorAll('.nav-item').forEach((item, index) => {
@@ -2099,10 +2257,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
 
     }
-
-
-
-    await loadTierlist();
 
 
 
