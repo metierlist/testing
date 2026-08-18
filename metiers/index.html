@@ -2191,17 +2191,50 @@ function copyServerIP(ip, element) {
 
 
 
-document.getElementById('search').addEventListener('keypress', (e) => {
+document.getElementById('search').addEventListener('keypress', async (e) => {
 
     if (e.key === 'Enter') {
 
         const val = e.target.value.trim();
 
-        if(!val) return;
+        if (!val) return;
 
+        // 1) Already has at least one tier — served straight from the cached,
+        //    already-ranked list (no extra Supabase round trip needed).
         const found = processedPlayers.find(p => p.name.toLowerCase() === val.toLowerCase());
+        if (found) { openPopup(found, val); return; }
 
-        openPopup(found, val);
+        // 2) No tiers yet, but might still be a known/verified player — check
+        //    the `players` table directly (not player_tiers). If they exist
+        //    here, show their real region/account type/badge with every kit
+        //    rendered as untested (faded, "---") instead of guessing.
+        try {
+            const { data: playerRow, error } = await supabaseClient
+                .from('players')
+                .select('name, region, account_type, badge')
+                .eq('guild_id', SUPABASE_GUILD_ID)
+                .ilike('name', val)
+                .maybeSingle();
+
+            if (!error && playerRow) {
+                openPopup({
+                    name: playerRow.name,
+                    region: playerRow.region,
+                    type: playerRow.account_type,
+                    Badge: playerRow.badge ? 'True' : 'False',
+                    kitMap: {},
+                    points: "N/A",
+                    originalRank: "N/A"
+                }, val);
+                return;
+            }
+        } catch (err) {
+            console.error("Failed to look up player in Supabase players table:", err);
+        }
+
+        // 3) Not in the database at all — fall back to the original
+        //    "Unverified" popup with a live Mojang lookup for Premium/Cracked.
+        openPopup(null, val);
 
     }
 
